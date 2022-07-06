@@ -20,7 +20,10 @@ static handler *create_handler(handlerton *const hton,
 static int init_func(void *const p)
 {
   handlerton *simplex_hton= (handlerton *) p;
+
   simplex_hton->create= create_handler;
+  simplex_hton->drop_table= [](handlerton *, const char *) { return -1; };
+
   return 0;
 }
 

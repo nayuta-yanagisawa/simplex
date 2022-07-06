@@ -1,6 +1,4 @@
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
 CREATE TABLE t (c INT) ENGINE=SIMPLEX;
 DROP TABLE t;
-Warnings:
-Warning	1017	Can't find file: 't' (errno: 2 "No such file or directory")
 UNINSTALL PLUGIN simplex;
