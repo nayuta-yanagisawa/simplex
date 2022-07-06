@@ -1,2 +1,6 @@
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
+
+CREATE TABLE t (c INT) ENGINE=SIMPLEX;
+DROP TABLE t;
+
 UNINSTALL PLUGIN simplex;
