@@ -1,0 +1,2 @@
+INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
+UNINSTALL PLUGIN simplex;
