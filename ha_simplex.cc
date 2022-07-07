@@ -21,6 +21,19 @@ static handler *create_handler(handlerton *const hton,
 }
 
 /*
+  Engine-defined table option
+
+  CREATE TABLE (...) ENGINE=SIMPLEX REMOTE_SERVER='s';
+*/
+struct ha_table_option_struct
+{
+  char *remote_server;
+};
+
+ha_create_table_option table_option_list[]= {
+    HA_TOPTION_STRING("REMOTE_SERVER", remote_server), HA_TOPTION_END};
+
+/*
   Plugin initialization function, only used by the server code
 */
 static int init_func(void *const p)
@@ -29,6 +42,8 @@ static int init_func(void *const p)
 
   simplex_hton->create= create_handler;
   simplex_hton->drop_table= [](handlerton *, const char *) { return -1; };
+
+  simplex_hton->table_options= table_option_list;
 
   return 0;
 }
