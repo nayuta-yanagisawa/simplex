@@ -1,8 +1,13 @@
+connect  local, localhost, root, , , $LOCAL_MYPORT, $LOCAL_MYSOCK;
+connect  remote, localhost, root, , , $REMOTE_MYPORT, $REMOTE_MYSOCK;
+connection local;
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
 CREATE SERVER s FOREIGN DATA WRAPPER 'mariadb'
 OPTIONS (
 USER 'root',
 HOST 'localhost',
+PORT 16001,
+PASSWORD '',
 DATABASE 'test'
 );
 CREATE TABLE t (c INT) ENGINE=SIMPLEX REMOTE_SERVER='s';
@@ -11,5 +16,12 @@ Table	Create Table
 t	CREATE TABLE `t` (
   `c` int(11) DEFAULT NULL
 ) ENGINE=simplex DEFAULT CHARSET=latin1 `REMOTE_SERVER`='s'
+connection remote;
+CREATE TABLE t (c INT) ENGINE=InnoDB;
+INSERT INTO t VALUES (1), (2), (3);
+connection local;
+connection local;
 DROP TABLE t;
 UNINSTALL PLUGIN simplex;
+connection remote;
+DROP TABLE t;

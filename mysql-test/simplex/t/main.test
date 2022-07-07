@@ -1,15 +1,35 @@
+--source include/have_innodb.inc
+
+--connect (local, localhost, root, , , $LOCAL_MYPORT, $LOCAL_MYSOCK)
+--connect (remote, localhost, root, , , $REMOTE_MYPORT, $REMOTE_MYSOCK)
+
+--connection local
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
 
-CREATE SERVER s FOREIGN DATA WRAPPER 'mariadb'
+eval CREATE SERVER s FOREIGN DATA WRAPPER 'mariadb'
 OPTIONS (
     USER 'root',
     HOST 'localhost',
+    PORT $REMOTE_MYPORT,
+    PASSWORD '',
     DATABASE 'test'
 );
 
 CREATE TABLE t (c INT) ENGINE=SIMPLEX REMOTE_SERVER='s';
 SHOW CREATE TABLE t;
 
+--connection remote
+CREATE TABLE t (c INT) ENGINE=InnoDB;
+INSERT INTO t VALUES (1), (2), (3);
+
+--connection local
+# SELECT * FROM t; /* assertion 'sql_lock->lock_count <= lock_count' fails */
+
+# Cleanup
+--connection local
 DROP TABLE t;
 
 UNINSTALL PLUGIN simplex;
+
+--connection remote
+DROP TABLE t;
