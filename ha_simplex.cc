@@ -2,14 +2,17 @@
 
 namespace simplex
 {
-static struct st_mysql_storage_engine simplex_storage_engine= {
-    MYSQL_HANDLERTON_INTERFACE_VERSION};
-
 ha_simplex::ha_simplex(handlerton *const hton, TABLE_SHARE *const share)
     : handler(hton, share)
 {
 }
 
+static struct st_mysql_storage_engine simplex_storage_engine= {
+    MYSQL_HANDLERTON_INTERFACE_VERSION};
+
+/*
+  Allocate ha_simplex on given MEM_ROOT, only used by init_func()
+*/
 static handler *create_handler(handlerton *const hton,
                                TABLE_SHARE *const share,
                                MEM_ROOT *const mem_root)
@@ -17,6 +20,9 @@ static handler *create_handler(handlerton *const hton,
   return new (mem_root) ha_simplex(hton, share);
 }
 
+/*
+  Plugin initialization function, only used by the server code
+*/
 static int init_func(void *const p)
 {
   handlerton *simplex_hton= (handlerton *) p;
@@ -27,6 +33,9 @@ static int init_func(void *const p)
   return 0;
 }
 
+/*
+  Plugin termination function, only used by the server code
+*/
 static int done_func(void *const p) { return 0; }
 
 maria_declare_plugin(simplex){
