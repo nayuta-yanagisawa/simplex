@@ -23,7 +23,7 @@ CREATE TABLE t (c INT) ENGINE=InnoDB;
 INSERT INTO t VALUES (1), (2), (3);
 
 --connection local
-# SELECT * FROM t; /* assertion 'sql_lock->lock_count <= lock_count' fails */
+SELECT * FROM t;
 
 # Cleanup
 --connection local

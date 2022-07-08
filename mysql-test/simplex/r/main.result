@@ -15,11 +15,13 @@ SHOW CREATE TABLE t;
 Table	Create Table
 t	CREATE TABLE `t` (
   `c` int(11) DEFAULT NULL
-) ENGINE=simplex DEFAULT CHARSET=latin1 `REMOTE_SERVER`='s'
+) ENGINE=SIMPLEX DEFAULT CHARSET=latin1 `REMOTE_SERVER`='s'
 connection remote;
 CREATE TABLE t (c INT) ENGINE=InnoDB;
 INSERT INTO t VALUES (1), (2), (3);
 connection local;
+SELECT * FROM t;
+c
 connection local;
 DROP TABLE t;
 UNINSTALL PLUGIN simplex;
