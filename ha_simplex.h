@@ -21,7 +21,7 @@ public:
   }
   int open(const char *name, int mode, uint test_if_locked) override;
   int close(void) override;
-  int rnd_init(bool scan) override { return 0; }
+  int rnd_init(bool scan) override;
   int rnd_next(uchar *buf) override { return HA_ERR_END_OF_FILE; }
   int rnd_pos(uchar *buf, uchar *pos) override { return 0; }
   void position(const uchar *record) override {}

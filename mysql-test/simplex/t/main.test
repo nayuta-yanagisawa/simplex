@@ -6,9 +6,9 @@
 --connection local
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
 
-CREATE TABLE t (
+eval CREATE TABLE t (
     c INT
-) ENGINE=SIMPLEX REMOTE_USER='root' REMOTE_PASSWORD='';
+) ENGINE=SIMPLEX REMOTE_USER='root' REMOTE_PASSWORD='' REMOTE_HOST='localhost', REMOTE_PORT='$REMOTE_MYPORT';
 SHOW CREATE TABLE t;
 
 --connection remote
@@ -18,11 +18,11 @@ INSERT INTO t VALUES (1), (2), (3);
 --connection local
 SELECT * FROM t;
 
-BEGIN;
-SELECT * FROM t WHERE c = 1;
-SELECT * FROM t WHERE c = 2;
-SELECT * FROM t WHERE c = 3;
-COMMIT;
+#BEGIN;
+#SELECT * FROM t WHERE c = 1;
+#SELECT * FROM t WHERE c = 2;
+#SELECT * FROM t WHERE c = 3;
+#COMMIT;
 
 # Cleanup
 --connection local

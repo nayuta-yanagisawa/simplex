@@ -1,4 +1,7 @@
 #include "ha_simplex.h"
+#include <create_options.h>
+#include <mysql.h>
+#include <string>
 
 namespace simplex
 {
@@ -53,6 +56,70 @@ THR_LOCK_DATA **ha_simplex::store_lock(THD *thd, THR_LOCK_DATA **to,
 
 int ha_simplex::external_lock(THD *thd, int lock_type) { return 0; }
 
+int ha_simplex::rnd_init(bool scan)
+{
+  if (scan)
+  {
+    const char *user= "";
+    const char *password= "";
+    const char *host= "";
+    const char *port= "";
+
+    for (engine_option_value *option= table->s->option_list; option != nullptr;
+         option= option->next)
+    {
+      if (!strcmp(option->name.str, "REMOTE_USER"))
+      {
+        user= option->value.str;
+      }
+      if (!strcmp(option->name.str, "REMOTE_PASSWORD"))
+      {
+        password= option->value.str;
+      }
+      if (!strcmp(option->name.str, "REMOTE_HOST"))
+      {
+        host= option->value.str;
+      }
+      if (!strcmp(option->name.str, "REMOTE_PORT"))
+      {
+        port= option->value.str;
+      }
+    }
+
+    MYSQL *mysql;
+    if (!(mysql= mysql_init(nullptr)))
+    {
+      return HA_ERR_OUT_OF_MEM;
+    }
+
+    if (!mysql_real_connect(mysql, host, user, password, table->s->db.str,
+                            16001, nullptr, 0)) // Use value of port
+    {
+      mysql_close(mysql);
+      return 1; // Use proper error code
+    }
+
+    Binary_string query;
+    query.append(STRING_WITH_LEN("SELECT * FROM t"));
+
+    // query.append(STRING_WITH_LEN("SELECT * FROM "));
+    // query.append(STRING_WITH_LEN(table->s->table_name.str));
+
+    if (mysql_real_query(mysql, query.ptr(), query.length()))
+    {
+      const char *errmsg= mysql_error(mysql);
+      mysql_close(mysql);
+      return 1; // Use proper error code
+    }
+
+    /* Just throw away the result, no rows anyways but need to keep in sync */
+    mysql_free_result(mysql_store_result(mysql));
+
+    mysql_close(mysql);
+  }
+  return 0;
+}
+
 static struct st_mysql_storage_engine storage_engine= {
     MYSQL_HANDLERTON_INTERFACE_VERSION};
 
@@ -73,12 +140,17 @@ static handler *create_handler(handlerton *const hton,
 */
 struct ha_table_option_struct
 {
-  char *remote_server;
+  char *remote_user;
+  char *remote_password;
+  char *remote_host;
+  char *remote_port;
 };
 
 ha_create_table_option table_option_list[]= {
-    HA_TOPTION_STRING("REMOTE_USER", remote_server),
-    HA_TOPTION_STRING("REMOTE_PASSWORD", remote_server), HA_TOPTION_END};
+    HA_TOPTION_STRING("REMOTE_USER", remote_user),
+    HA_TOPTION_STRING("REMOTE_PASSWORD", remote_password),
+    HA_TOPTION_STRING("REMOTE_HOST", remote_host),
+    HA_TOPTION_STRING("REMOTE_PORT", remote_port), HA_TOPTION_END};
 
 PSI_mutex_key psi_mutex_key_simplex;
 
