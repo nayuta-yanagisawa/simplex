@@ -77,7 +77,8 @@ struct ha_table_option_struct
 };
 
 ha_create_table_option table_option_list[]= {
-    HA_TOPTION_STRING("REMOTE_SERVER", remote_server), HA_TOPTION_END};
+    HA_TOPTION_STRING("REMOTE_USER", remote_server),
+    HA_TOPTION_STRING("REMOTE_PASSWORD", remote_server), HA_TOPTION_END};
 
 PSI_mutex_key psi_mutex_key_simplex;
 

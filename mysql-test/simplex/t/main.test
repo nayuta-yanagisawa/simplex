@@ -6,16 +6,9 @@
 --connection local
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
 
-eval CREATE SERVER s FOREIGN DATA WRAPPER 'mariadb'
-OPTIONS (
-    USER 'root',
-    HOST 'localhost',
-    PORT $REMOTE_MYPORT,
-    PASSWORD '',
-    DATABASE 'test'
-);
-
-CREATE TABLE t (c INT) ENGINE=SIMPLEX REMOTE_SERVER='s';
+CREATE TABLE t (
+    c INT
+) ENGINE=SIMPLEX REMOTE_USER='root' REMOTE_PASSWORD='';
 SHOW CREATE TABLE t;
 
 --connection remote
@@ -24,6 +17,12 @@ INSERT INTO t VALUES (1), (2), (3);
 
 --connection local
 SELECT * FROM t;
+
+BEGIN;
+SELECT * FROM t WHERE c = 1;
+SELECT * FROM t WHERE c = 2;
+SELECT * FROM t WHERE c = 3;
+COMMIT;
 
 # Cleanup
 --connection local

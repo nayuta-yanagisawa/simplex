@@ -2,26 +2,28 @@ connect  local, localhost, root, , , $LOCAL_MYPORT, $LOCAL_MYSOCK;
 connect  remote, localhost, root, , , $REMOTE_MYPORT, $REMOTE_MYSOCK;
 connection local;
 INSTALL PLUGIN simplex SONAME 'ha_simplex.so';
-CREATE SERVER s FOREIGN DATA WRAPPER 'mariadb'
-OPTIONS (
-USER 'root',
-HOST 'localhost',
-PORT 16001,
-PASSWORD '',
-DATABASE 'test'
-);
-CREATE TABLE t (c INT) ENGINE=SIMPLEX REMOTE_SERVER='s';
+CREATE TABLE t (
+c INT
+) ENGINE=SIMPLEX REMOTE_USER='root' REMOTE_PASSWORD='';
 SHOW CREATE TABLE t;
 Table	Create Table
 t	CREATE TABLE `t` (
   `c` int(11) DEFAULT NULL
-) ENGINE=SIMPLEX DEFAULT CHARSET=latin1 `REMOTE_SERVER`='s'
+) ENGINE=SIMPLEX DEFAULT CHARSET=latin1 `REMOTE_USER`='root' `REMOTE_PASSWORD`=''
 connection remote;
 CREATE TABLE t (c INT) ENGINE=InnoDB;
 INSERT INTO t VALUES (1), (2), (3);
 connection local;
 SELECT * FROM t;
 c
+BEGIN;
+SELECT * FROM t WHERE c = 1;
+c
+SELECT * FROM t WHERE c = 2;
+c
+SELECT * FROM t WHERE c = 3;
+c
+COMMIT;
 connection local;
 DROP TABLE t;
 UNINSTALL PLUGIN simplex;
