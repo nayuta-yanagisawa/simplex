@@ -1,20 +1,10 @@
 #include <my_global.h>
 #include <handler.h>
 #include <table.h>
+#include "lock_handler.h"
 
 namespace simplex
 {
-/*
-  Shared structure for server-level table locking
-*/
-struct LockHandler
-{
-  THR_LOCK thr_lock;
-  uint reference_count;
-  uint table_name_length;
-  char table_name[1];
-};
-
 class ha_simplex final : public handler
 {
 public:
