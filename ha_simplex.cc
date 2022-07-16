@@ -95,23 +95,21 @@ int ha_simplex::rnd_init(bool scan)
     }
 
     if (!mysql_real_connect(mysql, host, user, password, table->s->db.str,
-                            16001, nullptr, 0)) // Use value of port
+                            atoi(port), nullptr, 0))
     {
       mysql_close(mysql);
-      return 1; // Use proper error code
+      return ER_CONNECT_TO_FOREIGN_DATA_SOURCE;
     }
 
     Binary_string query;
-    query.append(STRING_WITH_LEN("SELECT * FROM t"));
-
-    // query.append(STRING_WITH_LEN("SELECT * FROM "));
-    // query.append(STRING_WITH_LEN(table->s->table_name.str));
+    query.append(STRING_WITH_LEN("SELECT * FROM "));
+    query.append(table->s->table_name);
 
     if (mysql_real_query(mysql, query.ptr(), query.length()))
     {
-      const char *errmsg= mysql_error(mysql);
+      my_error(ER_QUERY_ON_FOREIGN_DATA_SOURCE, MYF(0), mysql_error(mysql));
       mysql_close(mysql);
-      return 1; // Use proper error code
+      return ER_QUERY_ON_FOREIGN_DATA_SOURCE;
     }
 
     stored_result= mysql_store_result(mysql);
