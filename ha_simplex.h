@@ -1,15 +1,21 @@
+#pragma onece
+
 #include <my_global.h>
 #include <handler.h>
-#include <table.h>
-#include "lock_handler.h"
+
+typedef struct st_mysql_res MYSQL_RES;
+struct TABLE;
 
 namespace simplex
 {
+struct LockHandler;
+
 class ha_simplex final : public handler
 {
 public:
   THR_LOCK_DATA lock;
   LockHandler *lock_handler;
+  MYSQL_RES *stored_result;
 
   ha_simplex(handlerton *const hton, TABLE_SHARE *const share);
   ~ha_simplex() {}
@@ -22,7 +28,8 @@ public:
   int open(const char *name, int mode, uint test_if_locked) override;
   int close(void) override;
   int rnd_init(bool scan) override;
-  int rnd_next(uchar *buf) override { return HA_ERR_END_OF_FILE; }
+  int rnd_end() override;
+  int rnd_next(uchar *buf) override;
   int rnd_pos(uchar *buf, uchar *pos) override { return 0; }
   void position(const uchar *record) override {}
   int info(uint) override { return 0; }

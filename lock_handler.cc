@@ -1,4 +1,10 @@
-#include "ha_simplex.h"
+#include "lock_handler.h"
+
+#include <my_global.h>
+#include <thr_lock.h>
+#include <hash.h>
+#include "mysqld.h" // system_charset_info
+
 namespace simplex
 {
 static HASH lock_handler_map;
@@ -38,6 +44,7 @@ void done_lock_handler_map()
 LockHandler *get_lock_handler(const char *table_name)
 {
   LockHandler *lock_handler;
+
   uint length= (uint) strlen(table_name);
 
   mysql_mutex_lock(&lock_handler_map_mutex);

@@ -16,6 +16,9 @@ INSERT INTO t VALUES (1), (2), (3);
 connection local;
 SELECT * FROM t;
 c
+1
+2
+3
 connection local;
 DROP TABLE t;
 UNINSTALL PLUGIN simplex;

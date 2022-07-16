@@ -1,4 +1,6 @@
 #include "ha_simplex.h"
+#include "lock_handler.h"
+
 #include <create_options.h>
 #include <mysql.h>
 #include <string>
@@ -112,12 +114,75 @@ int ha_simplex::rnd_init(bool scan)
       return 1; // Use proper error code
     }
 
-    /* Just throw away the result, no rows anyways but need to keep in sync */
-    mysql_free_result(mysql_store_result(mysql));
+    stored_result= mysql_store_result(mysql);
 
     mysql_close(mysql);
   }
+
   return 0;
+}
+
+int ha_simplex::rnd_end()
+{
+  mysql_free_result(stored_result);
+  return 0;
+}
+
+/*
+  The following function is a verbatim copy of
+  ha_federated::convert_row_to_internal_format().
+*/
+int convert_row_to_internal_format(uchar *buf, MYSQL_ROW row,
+                                   MYSQL_RES *result, TABLE *table)
+{
+  ulong *lengths;
+  Field **field;
+  MY_BITMAP *old_map= dbug_tmp_use_all_columns(table, &table->write_set);
+
+  lengths= mysql_fetch_lengths(result);
+
+  for (field= table->field; *field; field++, row++, lengths++)
+  {
+    /*
+      index variable to move us through the row at the
+      same iterative step as the field
+    */
+    my_ptrdiff_t old_ptr;
+    old_ptr= (my_ptrdiff_t) (buf - table->record[0]);
+    (*field)->move_field_offset(old_ptr);
+    if (!*row)
+    {
+      (*field)->set_null();
+      (*field)->reset();
+    }
+    else
+    {
+      if (bitmap_is_set(table->read_set, (*field)->field_index))
+      {
+        (*field)->set_notnull();
+        (*field)->store_text(*row, *lengths, &my_charset_bin);
+      }
+    }
+    (*field)->move_field_offset(-old_ptr);
+  }
+
+  dbug_tmp_restore_column_map(&table->write_set, old_map);
+  return 0;
+}
+
+int ha_simplex::rnd_next(uchar *buf)
+{
+  if (stored_result == nullptr)
+  {
+    return HA_ERR_END_OF_FILE;
+  }
+
+  MYSQL_ROW row;
+
+  if (!(row= mysql_fetch_row(stored_result)))
+    return HA_ERR_END_OF_FILE;
+
+  return convert_row_to_internal_format(buf, row, stored_result, table);
 }
 
 static struct st_mysql_storage_engine storage_engine= {

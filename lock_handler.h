@@ -1,5 +1,8 @@
 #pragma once
 
+#include <my_global.h>
+#include <thr_lock.h>
+
 namespace simplex
 {
 /*
